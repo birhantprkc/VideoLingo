@@ -27,7 +27,7 @@ VideoLingo は Streamlit 上で音声認識、字幕翻訳、分割、吹き替�
 
 - 設定可能な文字数制限による字幕分割
 
-- **🗣️ GPT-SoVITS、Azure、OpenAIなどによる吹き替え**
+- **🗣️ GPT-SoVITS、OpenAI、Edge TTSなどによる吹き替え**
 
 - 🚀 Streamlitでのワンクリック起動と処理
 
@@ -79,42 +79,32 @@ https://github.com/user-attachments/assets/47d965b2-b4ab-4a0b-9d08-b49a7bf3508c
 
 ## インストール
 
-問題がありましたか？無料のオンラインAIエージェントと[**こちら**](https://share.fastgpt.in/chat/share?shareId=066w11n3r9aq6879r4z0v9rh)でチャットして支援を受けられます。
+VideoLingo は Windows、macOS（Apple Silicon / Intel）、Linux に対応しています。
 
-先に [Git](https://git-scm.com/downloads) と [uv](https://docs.astral.sh/uv/getting-started/installation/) をインストールし、ターミナルを開き直して `git --version` と `uv --version` を確認してください。
+### ローカル AI エージェントに頼む 🤖
 
-NVIDIA を使用する場合は、GPU に対応するドライバーが必要です。インストーラーは `nvidia-smi` が CUDA >=12.8 を示す場合に PyTorch `cu128`、それ以外は `cu126` を選択し、NVIDIA がなければ CPU パッケージを選択します。これは Python パッケージの選択であり、システムの CUDA Toolkit は自動インストールしません。Apple Silicon（macOS 14+）では、ローカル認識に MLX を使用します。[GPU 要件](../docs/pages/docs/start.en-US.md#gpu-runtime)を参照してください。
+AI エージェントがこのコンピューターを操作できる場合は、次のように伝えてください。
 
-> FFmpeg と ffprobe はセットアップ時に自動でダウンロード・設定されます。手動ダウンロードや PATH の設定は不要です。初回セットアップにはネット接続が必要で、以降は取得済みのツールを再利用します。
+> GitHub の Huanshere/VideoLingo をこのコンピューターにインストールして起動して。
 
-### uv でインストール
+### Windows：ダブルクリックでインストール 🎉
 
-uv が Python 3.13 を取得して `.venv` を作成するため、Python の事前インストールは不要です。アプリは Python 3.10–3.13 に対応します。既定の Qwen3-ASR 認識は FFmpeg コマンドラインツールのみを呼び出します。
+1. [最新リリース](https://github.com/Huanshere/VideoLingo/releases/latest)から **Source code (zip)** をダウンロードし、デスクトップなどに展開してフォルダーを開きます。
+2. `OneKeyStart.bat` をダブルクリックし、ウィンドウを開いたままにします。初回は uv、Python 3.12、アプリの依存関係、FFmpeg を自動でインストールします。インターネット接続が必要です。
+3. インストールが完了すると、VideoLingo がブラウザーで自動的に開きます。サイドバーに API URL、キー、モデルを入力して使い始めてください。
 
-1. リポジトリをクローン
-
-```bash
-git clone https://github.com/Huanshere/VideoLingo.git
-cd VideoLingo
-```
-
-2. 環境を作成して依存関係をインストール
+### ソースコードからインストール（Windows・macOS・Linux）
 
 ```bash
-uv run --no-project --python 3.13 setup_env.py
+git clone https://github.com/Huanshere/VideoLingo.git && cd VideoLingo
+uv run start.py
 ```
 
-3. アプリケーションの起動
+次回からは VideoLingo フォルダーで `uv run start.py` を実行します。Apple Silicon は MLX、Intel Mac は CPU で音声認識を行います。Intel Mac の吹き替えでは、既定で元動画の背景音は残らず、新しい音声のみを使用します。
 
-```bash
-.venv\Scripts\streamlit run st.py        # Windows
-.venv/bin/streamlit run st.py            # macOS / Linux
-```
+#### Docker（オプション）
 
-Windows では `OneKeyStart.bat` をダブルクリックすることもできます。既存の `~/.venvs/videolingo` を優先し、次にプロジェクトの `.venv` を使用します。`http://localhost:8501` を開き、サイドバーで API URL、キー、モデルを設定してください。
-
-### Docker
-Linux の NVIDIA コンテナーには Docker、互換ドライバー、[NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) が必要です。イメージは同じ Python 3.13 セットアップとアプリ依存関係を使用し、既定は CUDA 12.8.1/cu128 です。CUDA 12.6 の組み合わせとデータ永続化は [Docker ドキュメント](/docs/pages/docs/docker.en-US.md)を参照してください。
+Linux の NVIDIA コンテナーには Docker、互換ドライバー、[NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) が必要です。イメージは同じ Python 3.12 セットアップとアプリ依存関係を使用し、既定は CUDA 12.8.1/cu128 です。CUDA 12.6 の組み合わせとデータ永続化は [Docker ドキュメント](/docs/pages/docs/docker.en-US.md)を参照してください。
 
 ```bash
 docker build -t videolingo .
@@ -124,8 +114,8 @@ docker run -d -p 8501:8501 --gpus all videolingo
 ## API
 VideoLingoはOpenAIライクなAPI形式と様々なTTSインターフェースをサポートしています：
 - LLM: OpenAI Chat Completions 互換で、処理に必要な構造化 JSON を返せるサービスとモデルを選びます。API URL、キー、モデルはサイドバーで設定します。
-- 音声認識：ローカル Qwen3-ASR + ForcedAligner（既定）、または ElevenLabs API。インストーラーは WhisperX を入れません。バックエンドとして使う場合は [WhisperX（手動インストール）](../docs/pages/docs/whisperx-manual.en-US.md) を参照してください。
-- TTS: Azure、OpenAI、Fish TTS、SiliconFlow Fish/CosyVoice2、GPT-SoVITS、Edge TTS、F5-TTS、および `core/tts_backend/custom_tts.py` のカスタムアダプター。
+- 音声認識：ローカル Qwen3-ASR + ForcedAligner（既定）、または ElevenLabs、MAI-Transcribe-2 を選択できます。MAI では Azure Speech または OpenRouter のキー（サイドバーで入力）を使用でき、音声は選択したプロバイダーに送信され、料金が発生する場合があります。インストーラーは WhisperX を入れません。バックエンドとして使う場合は [WhisperX（手動インストール）](../docs/pages/docs/whisperx-manual.en-US.md) を参照してください。
+- TTS: OpenAI、Fish Audio、SiliconFlow Fish/CosyVoice2、GPT-SoVITS、Edge TTS、F5-TTS、および `core/tts_backend/custom_tts.py` のカスタムアダプター。
 
 詳細なインストール方法、API設定、バッチモードの説明については、ドキュメントを参照してください：[English](/docs/pages/docs/start.en-US.md) | [中文](/docs/pages/docs/start.zh-CN.md)
 

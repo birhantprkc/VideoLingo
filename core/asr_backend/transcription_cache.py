@@ -13,7 +13,8 @@ CACHE_DIR = Path(".cache/asr")
 # Bump when preprocessing, model options or result interpretation changes.
 # 2: Demucs stems are decoded/encoded with FFmpeg and no longer start ~60 ms late.
 # 3: Qwen alignment preserves original Unicode characters after token normalization.
-SCHEMA = 3
+# 4: Qwen windows exclude non-speech edges before transcription and alignment.
+SCHEMA = 4
 
 
 def cache_key(media_file, whisper, demucs):
@@ -22,8 +23,22 @@ def cache_key(media_file, whisper, demucs):
         for block in iter(lambda: source.read(1024 * 1024), b""):
             check_cancel()
             digest.update(block)
+    if whisper["runtime"] == "mai":
+        from core.asr_backend.mai_asr import CACHE_IDENTITY, OPENROUTER_CACHE_IDENTITY
+        # Credentials, Azure region, and local model packages do not change
+        # MAI's output. Provider API/response contracts have separate identities.
+        provider = str(whisper.get("mai_provider", "azure") or "azure").lower()
+        if provider not in ("azure", "openrouter"):
+            raise ValueError("whisper.mai_provider must be 'azure' or 'openrouter'")
+        identity = {
+            "schema": SCHEMA, "media_md5": digest.hexdigest(),
+            "runtime": "mai", "mai": (CACHE_IDENTITY if provider == "azure"
+                                        else OPENROUTER_CACHE_IDENTITY),
+            "language": whisper["language"], "demucs": bool(demucs),
+        }
+        return hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
     packages = {}
-    for name in ("whisperx", "faster-whisper", "qwen-asr", "mlx-audio", "transformers", "demucs"):
+    for name in ("whisperx", "faster-whisper", "qwen-asr", "mlx-audio", "transformers", "demucs", "silero-vad"):
         try:
             packages[name] = version(name)
         except PackageNotFoundError:

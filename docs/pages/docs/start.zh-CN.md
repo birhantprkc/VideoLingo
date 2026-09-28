@@ -24,15 +24,16 @@ VideoLingo提供了多种 tts 接入方式，以下是对比（如不使用配�
 
 | TTS 方案 | 提供商 | 优点 | 缺点 | 中文效果 | 非中文效果 |
 |:---------|:---------|:-----|:-----|:---------|:-----------|
-| 🔊 Azure TTS ⭐ | [302AI](https://gpt302.saaslink.net/C2oHR9) | 效果自然 | 情感不够丰富 | 🤩 | 😃 |
-| 🎙️ OpenAI TTS | [302AI](https://gpt302.saaslink.net/C2oHR9) | 情感真实 | 中文听起来像外国人 | 😕 | 🤩 |
-| 🎤 Fish TTS | [302AI](https://gpt302.saaslink.net/C2oHR9) | 真是本地人 | 官方模型有限 | 🤩 | 😂 |
+| 🎙️ OpenAI TTS | [OpenLux](https://www.openlux.ai/register?aff=wKYu) | 情感真实 | 中文听起来像外国人 | 😕 | 🤩 |
+| 🎙️ Fish Audio | [Fish Audio](https://fish.audio) | 克隆视频里的声音，也可以用 fish.audio 上的任意音色 | API 需付费 | 🤩 | 😃 |
 | 🎙️ SiliconFlow FishTTS | [硅基流动](https://cloud.siliconflow.cn/i/ttKDEsxE) | 语音克隆 | 克隆效果不稳定 | 😃 | 😃 |
 | Edge TTS | 在线服务 | 此适配器无需单独 API 密钥 | 需要联网 | — | — |
 | 🗣️ GPT-SoVITS | 本地 | 最强语音克隆 | 只支持中英文，需要本地训练推理，配置麻烦 | 🏆 | 🚫 |
 
 - SiliconFlow FishTTS 请在 [硅基流动](https://cloud.siliconflow.cn/i/ttKDEsxE) 获取key，注意克隆功能需要付费充值积分；
-- OpenAI TTS、Azure TTS 和 Fish TTS，仅支持 [302AI](https://gpt302.saaslink.net/C2oHR9) - 一个 API key 即可使用所有服务
+- OpenAI TTS 使用 [OpenLux](https://www.openlux.ai/register?aff=wKYu)，和 LLM 用同一个 key 即可。其他兼容 OpenAI 语音接口的服务，可以在 `config.yaml` 里修改 `openai_tts.base_url` 和 `openai_tts.model`；
+- Fish Audio 请在 [fish.audio](https://fish.audio/app/api-keys/) 获取 key。API 按用量计费，账户里需要有余额，克隆不另外收费；
+- F5-TTS 仅支持 [302AI](https://gpt302.saaslink.net/C2oHR9)，克隆视频里的声音；
 > 自定义 TTS 适配器位于 `core/tts_backend/custom_tts.py`。
 
 <details>
@@ -49,22 +50,28 @@ VideoLingo提供了多种 tts 接入方式，以下是对比（如不使用配�
 <details>
 <summary>OpenAI 声音怎么选？</summary>
 
-声音列表可以在 [官网](https://platform.openai.com/docs/guides/text-to-speech/voice-options) 找到，例如 `alloy`, `echo`, `nova`等，在 `config.yaml` 中修改 `openai_tts.voice` 即可。
+声音列表可以在 [官网](https://platform.openai.com/docs/guides/text-to-speech/voice-options) 找到，例如 `alloy`, `echo`, `nova`等，在 `config.yaml` 中修改 `openai_tts.voice` 即可。默认模型是 `gpt-4o-mini-tts`。
 
 </details>
 <details>
-<summary>Azure 声音怎么选？</summary>
+<summary>Fish Audio 声音怎么选？</summary>
 
-建议在 [在线体验](https://speech.microsoft.com/portal/voicegallery) 中试听选择你想要的声音，在右边的代码中可以找到该声音对应的代号，例如 `zh-CN-XiaoxiaoMultilingualNeural`
+在页面里选择服务商 `Fish Audio`，有两种模式：
+
+- **视频里的声音（克隆）**：默认模式。取视频开头 15-30 秒的人声作为所有句子的参考，不会在你的 Fish Audio 账户里保存任何东西。请只克隆你有权使用的声音。
+- **固定音色**：列表里自带两个音色，`语彤` 和 `浩然`。想用其他音色时，选择 `fish.audio 上的其他音色`，在 [fish.audio](https://fish.audio) 找到喜欢的音色并打开，把页面网址或 ID 粘贴进来即可。
+
+想把喜欢的音色放进列表，在 `config.yaml` 的 `fish_audio.voices` 里添加名字和 ID。模型是 `fish_audio.model`，默认 `s2.1-pro`。
 
 </details>
 
 <details>
-<summary>Fish TTS 声音怎么选？</summary>
+<summary>Edge TTS 声音怎么选？</summary>
 
-前往 [官网](https://fish.audio/zh-CN/) 中试听选择你想要的声音，在 URL 中可以找到该声音对应的代号，例如丁真是 `54a5170264694bfc8e9ad98df7bd89c3`，热门的几种声音已添加在 `config.yaml` 中。如需使用其他声音，请在 `config.yaml` 中修改 `fish_tts.character_id_dict` 字典。
+Edge TTS 是默认的配音方式，不需要 API 密钥。运行 `edge-tts --list-voices` 可以列出所有声音，例如 `zh-CN-XiaoxiaoNeural`、`en-US-JennyNeural`，请选择目标语言的声音，在 `config.yaml` 的 `edge_tts.voice` 或侧栏中修改。
 
 </details>
+
 
 <details>
 <summary>GPT-SoVITS-v2 使用教程</summary>
@@ -119,20 +126,39 @@ VideoLingo提供了多种 tts 接入方式，以下是对比（如不使用配�
 
 ## 🛠️ 快速上手
 
-VideoLingo 支持 Windows、macOS 和 Linux 系统，可使用 CPU 或 GPU 运行。
+VideoLingo 支持 Windows、macOS（Apple Silicon / Intel）和 Linux。
 
-### 安装前准备
+### 让本地 AI Agent 帮你安装 🤖
 
-先安装 [Git](https://git-scm.com/downloads) 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。重开终端，检查 `git --version` 和 `uv --version`。
+如果你的 AI Agent 可以操作这台电脑，直接告诉它：
 
-安装器会自动下载并配置 FFmpeg 和 ffprobe，无需手动下载或设置 PATH。首次安装需要联网，之后启动会复用已下载的程序。 字幕烧录仍需要合适的字体，安装器会在 Linux 上检查并尝试安装 Noto CJK。只有可选的 [WhisperX 后端](whisperx-manual.zh-CN.md#ffmpeg-runtime)需要另外配置 FFmpeg 共享库。
+> `帮我安装 GitHub 上的 Huanshere/VideoLingo，并启动它。`
+
+### Windows：双击安装 🎉
+
+1. 从[最新版本页面](https://github.com/Huanshere/VideoLingo/releases/latest)下载 **Source code (zip)**，解压到桌面等方便找到的位置，并打开文件夹。
+2. 双击 `OneKeyStart.bat`，保持窗口打开。首次运行会自动安装 uv、Python 3.12、应用依赖和 FFmpeg，需要联网。
+3. 安装完成后，VideoLingo 会自动在浏览器中打开。在侧栏填写 API 地址、密钥和模型，就可以开始使用了。
+
+如果使用 NVIDIA 显卡，先安装兼容的驱动，详见[显卡运行环境](#gpu-runtime)。
+
+### 从源码安装（Windows、macOS、Linux）
+
+```bash
+git clone https://github.com/Huanshere/VideoLingo.git && cd VideoLingo
+uv run start.py
+```
+
+以后在 VideoLingo 文件夹中运行 `uv run start.py` 即可启动。Apple Silicon 自动使用 MLX，Intel Mac 使用 CPU 识别。Intel Mac 默认配音只保留新生成的语音，不保留原视频的背景音。
+
+![tutorial](./zh_page.png)
 
 <a id="asr-runtime"></a>
 ### 语音识别（Qwen3-ASR + ForcedAligner）
 
 本地识别默认使用 **Qwen3-ASR** 转写，再用 **Qwen3-ForcedAligner-0.6B** 生成词级时间轴。开启人声分离时，转写用原始音频，对齐用分离出的人声。
 
-- **模型大小**：侧栏「Qwen3-ASR 模型大小」或 `config.yaml` 的 `whisper.qwen_model`。`1.7b`（默认）更准确；`0.6b` 更快、更省显存。对齐模型固定为 ForcedAligner-0.6B。
+- **模型大小**：`config.yaml` 的 `whisper.qwen_model`（侧栏不提供）。`1.7b`（默认）更准确；`0.6b` 更快、更省显存。对齐模型固定为 ForcedAligner-0.6B。
 - **推理引擎**：`whisper.qwen_engine: auto` 时自动选择，一般不需要改。
 
 | 平台 | 引擎 | 模型 | 说明 |
@@ -140,7 +166,7 @@ VideoLingo 支持 Windows、macOS 和 Linux 系统，可使用 CPU 或 GPU 运�
 | Apple Silicon Mac | MLX（mlx-audio） | `mlx-community/Qwen3-ASR-{1.7B,0.6B}-8bit`、`mlx-community/Qwen3-ForcedAligner-0.6B-8bit` | 需要 **macOS 14 或更高**（mlx 只提供 macOS ≥14 的 arm64 包） |
 | Windows / Linux + NVIDIA | 官方 qwen-asr（transformers） | `Qwen/Qwen3-ASR-{1.7B,0.6B}`、`Qwen/Qwen3-ForcedAligner-0.6B` | `cuda:0`，显卡支持 bf16 时用 bf16，否则 fp16 |
 | Windows / Linux 无 NVIDIA | 同上 | 同上 | CPU fp32，可以运行但**很慢**，建议选 0.6B 或改用 ElevenLabs |
-| Intel Mac | — | — | 仓库固定的 PyTorch 2.8 没有 macOS x86_64 安装包，目前无法安装；安装器会在安装依赖前直接报错退出 |
+| Intel Mac | 官方 qwen-asr（transformers） | `Qwen/Qwen3-ASR-{1.7B,0.6B}`、`Qwen/Qwen3-ForcedAligner-0.6B` | CPU fp32，自动安装 PyTorch 2.2.2；识别较慢，建议选 0.6B。可选的人声分离暂不自动安装 |
 
 - 在 Apple Silicon 上，默认依赖只安装 mlx-audio，不安装 qwen-asr；要用 `qwen_engine: transformers` 需要另建环境。macOS 低于 14 时安装器会直接报错退出。旧环境里如果装过 WhisperX，重跑 `installer.py` 时会先卸载WhisperX 整套依赖（whisperx、torchcodec、faster-whisper、ctranslate2、pyannote-*），它们与 MLX 依赖冲突。
 - **模型下载**：首次识别时从 Hugging Face 下载，1.7B 加对齐模型共数 GB。可用 `HF_ENDPOINT` 指定镜像。如果 `_model_cache/<仓库名末段>/config.json` 存在（例如 `_model_cache/Qwen3-ASR-1.7B`），会直接使用这份本地模型。
@@ -151,6 +177,12 @@ VideoLingo 支持 Windows、macOS 和 Linux 系统，可使用 CPU 或 GPU 运�
 - WhisperX 不是安装器选项。若要使用（包括中文 Belle 模型），请自行安装依赖，见 [WhisperX（手动安装）](whisperx-manual.zh-CN.md)。
 - 也可以使用官方 Docker 镜像 `qwenllm/qwen3-asr` 单独部署 Qwen3-ASR 服务，但 VideoLingo 目前不直接调用它。
 
+#### 可选的 MAI-Transcribe-2（Azure Speech 或 OpenRouter）
+
+在侧栏选择 **ASR Runtime → MAI-Transcribe-2**，再选择 **Azure Speech** 或 **OpenRouter**。Azure 使用 `whisper.mai_api_key` 和 `whisper.mai_region`（例如 `eastus`、资源终结点，或留空自动检测）；OpenRouter 使用单独的密钥输入框 `whisper.mai_openrouter_api_key`，不需要 Azure 区域。旧配置未设置 `whisper.mai_provider` 时仍使用 Azure。默认识别方式仍是本地 Qwen3-ASR。
+
+Azure MAI 使用快速转写 API；OpenRouter 使用[专用音频转写 API](https://openrouter.ai/docs/guides/overview/multimodal/stt) 和 `microsoft/mai-transcribe-2` 模型。两种方式都请求清理后的文本及词级时间戳。OpenRouter 会将音频拆为约两分钟的片段，以适应处理超时限制。音频会发送到选定的云服务商，可能产生费用。Azure MAI-Transcribe-2 目前为无 SLA 的公开预览；请确认资源区域支持该模型。缓存会区分服务商及 API 版本，但不包含密钥或 Azure 区域。[#618 的贡献者评测](https://github.com/Huanshere/VideoLingo/pull/618)比较的是 MAI 与 WhisperX，尚未比较当前默认的 Qwen3-ASR。
+
 <a id="gpu-runtime"></a>
 ### GPU 运行库
 
@@ -159,39 +191,6 @@ VideoLingo 支持 Windows、macOS 和 Linux 系统，可使用 CPU 或 GPU 运�
 - 默认的 Qwen3-ASR 通过 PyTorch 运行，使用 PyTorch 安装包自带的 CUDA 运行库，不需要另外安装 cuBLAS/cuDNN。自行安装的 WhisperX 需要 CUDA 12 cuBLAS 和 cuDNN 9，见 [WhisperX（手动安装）](whisperx-manual.zh-CN.md#cuda-runtime)。
 
 安装器选择的是 Python 包，不会安装系统 CUDA Toolkit。支持 CUDA 13 的新驱动不代表本项目需要 CUDA 13 的 Python 包。
-
-### 使用 uv 安装
-
-uv 创建使用 Python 3.13 的 `.venv`，已有应用环境支持 Python 3.10–3.13。下面的引导命令不需要预装 Python。
-
-1. 克隆项目：
-   ```bash
-   git clone https://github.com/Huanshere/VideoLingo.git
-   cd VideoLingo
-   ```
-
-2. 创建环境并安装依赖：
-   ```bash
-    uv run --no-project --python 3.13 setup_env.py
-   ```
-
-   `setup_env.py` 调用 `installer.py`：先安装基础工具和匹配的 Torch/torchaudio/torchvision，再安装应用依赖（含 Qwen3-ASR：Apple Silicon 为 mlx-audio，其余平台为 qwen-asr）、检查 spaCy、安装可选的 PyPI Demucs 4.1，最后登记项目、检查字体及环境。Demucs 使用正常依赖解析。`--shared` 选择 `~/.venvs/videolingo`，`--path` 可指定其他目录。
-
-3. 🎉 启动 Streamlit 应用：
-   ```bash
-   .venv\Scripts\streamlit run st.py        # Windows
-   .venv/bin/streamlit run st.py            # macOS / Linux
-   ```
-   或在 Windows 上双击 `OneKeyStart.bat`。
-
-4. 打开 `http://localhost:8501`，在侧栏配置兼容 OpenAI 的 API 地址、密钥和模型。`OneKeyStart.bat` 优先使用共享环境，其次使用项目 `.venv`；要明确使用当前项目环境，可执行上面的完整路径命令。
-
-   ![tutorial](./zh_page.png)
-
-5. （可选）更多设置可以在 `config.yaml` 中手动修改。自定义术语请在处理前写入 `custom_terms.xlsx`，三列分别为原文、译文、备注。
-
-> 需要帮助？我们的 [AI助手](https://share.fastgpt.in/chat/share?shareId=066w11n3r9aq6879r4z0v9rh) 随时解答问题！
-
 
 ## HTTP API
 
@@ -206,19 +205,16 @@ Excel 批处理已由本地 HTTP API 替代，与 Streamlit 共用处理流程�
 
 2. **'Retry Failed', 'SSL', 'Connection', 'Timeout'**: 通常是网络问题。解决方案：中国大陆用户请切换网络节点重试。
 
-3. **`Qwen ASR engine '...' needs the 'qwen-asr' package`（或 `mlx-audio`）**：当前环境没有安装对应的识别包。用启动 VideoLingo 的同一个环境执行 `python installer.py` 修复。Apple Silicon 上如果手动设置了 `qwen_engine: transformers`，请改回 `auto`。
+3. **`Qwen ASR engine '...' needs the 'qwen-asr' package`（或 `mlx-audio`）**：当前缺少识别包。关闭 VideoLingo 后重新启动即可修复：Windows 双击 `OneKeyStart.bat`，源码安装运行 `uv run start.py`。Apple Silicon 上如果手动设置了 `qwen_engine: transformers`，请改回 `auto`。
 
 4. **`Qwen3-ASR could not detect the language`** 或 **`... is still degenerate after retrying`**：`Auto` 模式下没能识别出语言，或识别结果退化（循环重复、内容过少）。在侧栏明确选择识别语言后重试，也可以换另一个模型大小。
 
-5. **显存不足（CUDA out of memory）**：在侧栏把 Qwen3-ASR 模型大小改为 0.6B；也可以关闭其他占用显卡的程序。
+5. **显存不足（CUDA out of memory）**：在 `config.yaml` 里把 `whisper.qwen_model` 改为 `0.6b`；也可以关闭其他占用显卡的程序。
 
 6. **macOS 安装时报 mlx 无法解析 / 没有可用的安装包**：mlx 只提供 macOS 14 及以上的 Apple Silicon 安装包，请先升级系统。
 
 7. **WhisperX 相关报错**（`cublas64_12.dll not found`、段错误、`Weights only load failed`、TorchCodec 等）：只在选择了 WhisperX 后端时出现，见 [WhisperX（手动安装）](whisperx-manual.zh-CN.md#common-errors)。
 
-8. **spaCy 模型缺失**：检查模型是否安装在启动 VideoLingo 的同一个环境内。例如，用该环境的 Python 安装英语模型：
-   ```bash
-    .venv\Scripts\python -m spacy download en_core_web_md
-   ```
+8. **spaCy 模型缺失**：VideoLingo 首次用到模型时通常会自动下载。检查网络连接，再重试这一步。
 
-9. **Torch 组件版本不一致**：用所选环境执行 `python installer.py --check`，再执行 `python installer.py` 修复。当前配套为 Torch/torchaudio 2.8.0、torchvision 0.23.0，三者采用同一 CPU/CUDA 构建。当前使用 PyPI Demucs 4.1，不再是需要 `--no-deps` 绕过依赖的旧 Git 包。
+9. **Torch 组件版本不一致**：关闭 VideoLingo 后重新启动即可修复：Windows 双击 `OneKeyStart.bat`，源码安装运行 `uv run start.py`。Intel Mac 使用 Torch/torchaudio 2.2.2、torchvision 0.17.2；其他平台使用 2.8.0、0.23.0。三者需要匹配。Intel Mac 不会自动安装 Demucs。
